@@ -35,6 +35,7 @@
 *.xcodeproj
 *.xcworkspace
 *.sln
+*.slnx
 *.suo
 *.opensdf
 *.sdf
@@ -72,3 +73,20 @@ Plugins/**/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+# Private notes & AI context (local only)
+Notes/
+CLAUDE.md
+.claude/
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# Heavy marketplace/placeholder asset packs (re-downloadable via Fab/Epic Games Launcher)
+Content/ParagonMurdock/
+Content/ParagonPhase/
+Content/ParagonTwinblast/
+Content/ParagonWraith/
+Content/FPS_Weapon_Bundle/
