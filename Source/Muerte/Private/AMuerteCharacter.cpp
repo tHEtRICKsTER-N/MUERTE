@@ -2,33 +2,35 @@
 
 
 #include "AMuerteCharacter.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "Camera/CameraComponent.h"
 
 // Sets default values
-AAMuerteCharacter::AAMuerteCharacter()
+AMuerteCharacter::AMuerteCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	// Creating the default subobjects
+	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
+
+	CameraBoom->SetupAttachment(RootComponent);
+	FollowCamera->SetupAttachment(CameraBoom,USpringArmComponent::SocketName);
 }
 
-// Called when the game starts or when spawned
-void AAMuerteCharacter::BeginPlay()
+void AMuerteCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
-// Called every frame
-void AAMuerteCharacter::Tick(float DeltaTime)
+void AMuerteCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
-// Called to bind functionality to input
-void AAMuerteCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void AMuerteCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 }
 
