@@ -21,7 +21,6 @@ AMuerteCharacter::AMuerteCharacter()
 void AMuerteCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 void AMuerteCharacter::Tick(float DeltaTime)

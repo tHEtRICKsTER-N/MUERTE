@@ -6,6 +6,10 @@
 #include "GameFramework/Character.h"
 #include "AMuerteCharacter.generated.h"
 
+// Forward Declarations
+class USpringArmComponent;
+class UCameraComponent;
+
 UCLASS()
 class MUERTE_API AMuerteCharacter : public ACharacter
 {
@@ -22,8 +26,8 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
-	class USpringArmComponent* CameraBoom;
+	TObjectPtr<USpringArmComponent> CameraBoom;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
-	class UCameraComponent* FollowCamera;
+	TObjectPtr<UCameraComponent> FollowCamera;
 };
