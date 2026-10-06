@@ -13,7 +13,8 @@
 // Sets default values
 AMuerteCharacter::AMuerteCharacter()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = true;
 
 	// Creating the default subobjects
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -36,6 +37,10 @@ AMuerteCharacter::AMuerteCharacter()
 	// Making sure that the camera boom only rotates with the pawn and not the actual camera component
 	CameraBoom->bUsePawnControlRotation = true;
 	FollowCamera->bUsePawnControlRotation = false;
+
+
+	// Setting the speed for walking default
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 }
 
 void AMuerteCharacter::BeginPlay()
@@ -51,11 +56,35 @@ void AMuerteCharacter::BeginPlay()
 				Subsystem->AddMappingContext(DefaultMappingContext,0);
 		}
 	}
+
+	// Cache the original arm length and ADS offset
+	DefaultTargetArmLength = CameraBoom->TargetArmLength;
+	DefaultSocketOffset = CameraBoom->SocketOffset;
+
+	// Ensure Tick is registered and enabled
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = true;
+	PrimaryActorTick.Target = this;
+	if (!PrimaryActorTick.IsTickFunctionRegistered())
+	{
+		RegisterActorTickFunctions(true);
+	}
+	PrimaryActorTick.SetTickFunctionEnable(true);
 }
 
 void AMuerteCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	// Smoothly interpolate CameraBoom for ADS
+	if (CameraBoom)
+	{
+		const float desiredArmLength = bIsAiming ? TargetArmLength : DefaultTargetArmLength;
+		const FVector desiredOffset = bIsAiming ? ADSOffset : DefaultSocketOffset;
+
+		CameraBoom->TargetArmLength = FMath::FInterpTo(CameraBoom->TargetArmLength, desiredArmLength, DeltaTime, ADSSpeed);
+		CameraBoom->SocketOffset = FMath::VInterpTo(CameraBoom->SocketOffset, desiredOffset, DeltaTime, ADSSpeed);
+	}
 }
 
 void AMuerteCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -70,9 +99,37 @@ void AMuerteCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMuerteCharacter::Look);
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMuerteCharacter::Move);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &AMuerteCharacter::StartSprint);
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AMuerteCharacter::StopSprint);
+
+		if (ADSAction)
+		{
+			EnhancedInputComponent->BindAction(ADSAction, ETriggerEvent::Started, this, &AMuerteCharacter::StartADS);
+			EnhancedInputComponent->BindAction(ADSAction, ETriggerEvent::Completed, this, &AMuerteCharacter::StopADS);
+		}
+		else
+		{
+			UE_LOG(LogMuerte, Warning, TEXT("ADSAction is not assigned! Please set it in BP_Player."));
+		}
 	}
 	else {
 		UE_LOG(LogMuerte, Warning, TEXT("Enhanced Input Component not found!"));
+	}
+}
+
+void AMuerteCharacter::StartSprint(const FInputActionValue& Value)
+{
+	if (UCharacterMovementComponent* move = GetCharacterMovement())
+	{
+		move->MaxWalkSpeed = SprintSpeed;
+	}
+}
+
+void AMuerteCharacter::StopSprint(const FInputActionValue& Value)
+{
+	if (UCharacterMovementComponent* move = GetCharacterMovement())
+	{
+		move->MaxWalkSpeed = WalkSpeed;
 	}
 }
 
@@ -106,4 +163,18 @@ void AMuerteCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(dir.X);
 		AddControllerPitchInput(dir.Y);
 	}
+}
+
+void AMuerteCharacter::StartADS(const FInputActionValue& Value)
+{
+	bIsAiming = true;
+	bUseControllerRotationYaw = true;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+}
+
+void AMuerteCharacter::StopADS(const FInputActionValue& Value)
+{
+	bIsAiming = false;
+	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
 }
