@@ -7,7 +7,6 @@
 #include "Camera/CameraComponent.h"
 #include "EnhancedInputComponent.h"
 #include "InputActionValue.h"
-#include "EnhancedInputSubsystems.h"
 #include "Muerte/Muerte.h"
 
 // Sets default values
@@ -46,16 +45,6 @@ AMuerteCharacter::AMuerteCharacter()
 void AMuerteCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	// Applying the Input Mapping Context to the PlayerController
-	if (APlayerController *MyController = Cast<APlayerController>(GetController()))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem *Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(MyController->GetLocalPlayer()))
-		{
-			if(DefaultMappingContext)
-				Subsystem->AddMappingContext(DefaultMappingContext,0);
-		}
-	}
 
 	// Cache the original arm length and ADS offset
 	DefaultTargetArmLength = CameraBoom->TargetArmLength;
